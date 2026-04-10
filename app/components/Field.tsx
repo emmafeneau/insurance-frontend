@@ -12,21 +12,29 @@ interface FieldProps {
 export function Field({ label, hint, children, className = "" }: FieldProps) {
   return (
     <div className={`flex flex-col gap-1.5 ${className}`}>
-      <label className="text-xs font-medium tracking-widest uppercase text-muted">
+      <label style={{ fontSize: "11px", fontWeight: 500, letterSpacing: "0.08em", textTransform: "uppercase", color: "#64748b" }}>
         {label}
       </label>
       {children}
-      {hint && <p className="text-xs text-muted/70">{hint}</p>}
+      {hint && <p style={{ fontSize: "11px", color: "#94a3b8", margin: 0 }}>{hint}</p>}
     </div>
   );
 }
 
-const inputClass =
-  "w-full bg-paper-dark border border-border rounded-none px-3 py-2.5 text-sm text-ink placeholder:text-muted/50 transition-colors hover:border-muted focus:border-accent focus:ring-0 outline-none";
+const inputStyle: React.CSSProperties = {
+  width: "100%",
+  background: "#f8fafc",
+  border: "1px solid #e2e8f0",
+  borderRadius: "8px",
+  padding: "10px 12px",
+  fontSize: "14px",
+  color: "#1e293b",
+  transition: "border-color 0.15s, box-shadow 0.15s",
+};
 
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {}
 export function Input(props: InputProps) {
-  return <input {...props} className={`${inputClass} ${props.className ?? ""}`} />;
+  return <input {...props} style={{ ...inputStyle, ...props.style }} />;
 }
 
 interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
@@ -34,14 +42,9 @@ interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
 }
 export function Select({ options, ...props }: SelectProps) {
   return (
-    <select
-      {...props}
-      className={`${inputClass} cursor-pointer appearance-none bg-[url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238a7f72' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")] bg-no-repeat bg-[right_12px_center] pr-9 ${props.className ?? ""}`}
-    >
+    <select {...props} style={{ ...inputStyle, cursor: "pointer", appearance: "none", backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")`, backgroundRepeat: "no-repeat", backgroundPosition: "right 12px center", paddingRight: "36px", ...props.style }}>
       {options.map((o) => (
-        <option key={o.value} value={o.value}>
-          {o.label}
-        </option>
+        <option key={o.value} value={o.value}>{o.label}</option>
       ))}
     </select>
   );
