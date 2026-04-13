@@ -72,3 +72,11 @@ export async function checkHealth(): Promise<HealthResponse> {
   if (!res.ok) throw new Error("API indisponible");
   return res.json();
 }
+
+export async function getVehicles(): Promise<Record<string, string[]>> {
+  const res = await fetch(`${API_URL}/api/v1/vehicles`, {
+    cache: "force-cache",
+  });
+  if (!res.ok) throw new Error("Impossible de charger les véhicules");
+  return res.json();
+}

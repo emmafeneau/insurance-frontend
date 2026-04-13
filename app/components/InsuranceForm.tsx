@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Field, Input, Select } from "./Field";
 import { StepIndicator } from "./StepIndicator";
 import { Results } from "./Results";
-import { PredictionInput, PrimeOutput, predictPrime } from "../lib/api";
+import { PredictionInput, PrimeOutput, predictPrime, getVehicles } from "../lib/api";
 
 const DEFAULT: PredictionInput = {
   bonus: 0.5,
@@ -26,8 +26,8 @@ const DEFAULT: PredictionInput = {
   cylindre_vehicule: 1587,
   din_vehicule: 98,
   essence_vehicule: "Gasoline",
-  marque_vehicule: "PEUGEOT",
-  modele_vehicule: "306",
+  marque_vehicule: "",
+  modele_vehicule: "",
   debut_vente_vehicule: 10,
   fin_vente_vehicule: 9,
   vitesse_vehicule: 182,
@@ -42,6 +42,14 @@ export default function InsuranceForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<PrimeOutput | null>(null);
+  const [vehicles, setVehicles] = useState<Record<string, string[]>>({});
+
+  const marques = Object.keys(vehicles).sort();
+  const modeles = form.marque_vehicule ? vehicles[form.marque_vehicule] || [] : [];
+
+  useEffect(() => {
+    getVehicles().then(setVehicles).catch(console.error);
+  }, []);
 
   function set(field: keyof PredictionInput, value: string | number | null) {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -228,12 +236,27 @@ export default function InsuranceForm() {
           </h2>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
             <Field label="Marque">
-              <Input type="text" value={form.marque_vehicule}
-                onChange={(e) => set("marque_vehicule", e.target.value.toUpperCase())} placeholder="ex : PEUGEOT" />
+              <Select
+                value={form.marque_vehicule}
+                onChange={(e) => {
+                  set("marque_vehicule", e.target.value);
+                  set("modele_vehicule", "");
+                }}
+                options={[
+                  { value: "", label: "Sélectionner une marque" },
+                  ...marques.map((m) => ({ value: m, label: m }))
+                ]}
+              />
             </Field>
             <Field label="Modèle">
-              <Input type="text" value={form.modele_vehicule}
-                onChange={(e) => set("modele_vehicule", e.target.value.toUpperCase())} placeholder="ex : 308" />
+              <Select
+                value={form.modele_vehicule}
+                onChange={(e) => set("modele_vehicule", e.target.value)}
+                options={[
+                  { value: "", label: form.marque_vehicule ? "Sélectionner un modèle" : "Choisir une marque d'abord" },
+                  ...modeles.map((m) => ({ value: m, label: m }))
+                ]}
+              />
             </Field>
             <Field label="Type de carburant">
               <Select value={form.essence_vehicule} onChange={(e) => set("essence_vehicule", e.target.value)}
