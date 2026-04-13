@@ -44,12 +44,16 @@ export default function InsuranceForm() {
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const [result, setResult] = useState<PrimeOutput | null>(null);
   const [brands, setBrands] = useState<VehicleBrand[]>([]);
+  const [brandsLoading, setBrandsLoading] = useState(true);
 
   const selectedBrand = brands.find((b) => b.value === form.marque_vehicule);
   const modeles = selectedBrand ? selectedBrand.models : [];
 
   useEffect(() => {
-    getVehicles().then((data) => setBrands(data.brands)).catch(console.error);
+    getVehicles()
+      .then((data) => setBrands(data.brands))
+      .catch(console.error)
+      .finally(() => setBrandsLoading(false));
   }, []);
 
   function set(field: keyof PredictionInput, value: string | number | null) {
@@ -59,27 +63,18 @@ export default function InsuranceForm() {
   async function handleSubmit() {
     const errors: string[] = [];
 
-    // Véhicule
     if (!form.marque_vehicule) errors.push("La marque du véhicule est obligatoire");
     if (!form.modele_vehicule) errors.push("Le modèle du véhicule est obligatoire");
-
-    // Contrat
     if (!form.code_postal || form.code_postal.length < 5) errors.push("Le code postal doit contenir 5 chiffres");
     if (!form.bonus || form.bonus < 0.5 || form.bonus > 3.5) errors.push("Le bonus-malus doit être entre 0.5 et 3.5");
     if (form.duree_contrat < 0 || form.duree_contrat > 120) errors.push("La durée du contrat doit être entre 0 et 120 mois");
     if (form.anciennete_info < 0 || form.anciennete_info > 50) errors.push("L'ancienneté info doit être entre 0 et 50 ans");
-
-    // Conducteur principal
-    if (!form.age_conducteur1 || form.age_conducteur1 < 18 || form.age_conducteur1 > 120) errors.push("L'âge du conducteur doit être entre 18 et 120 ans");
+    if (!form.age_conducteur1 || form.age_conducteur1 < 18 || form.age_conducteur1 > 100) errors.push("L'âge du conducteur doit être entre 18 et 100 ans");
     if (form.anciennete_permis1 < 0 || form.anciennete_permis1 > form.age_conducteur1 - 18) errors.push("L'ancienneté du permis est incohérente avec l'âge");
-
-    // Conducteur secondaire
     if (form.conducteur2 === "Yes") {
-      if (!form.age_conducteur2 || form.age_conducteur2 < 18 || form.age_conducteur2 > 120) errors.push("L'âge du conducteur secondaire doit être entre 18 et 120 ans");
+      if (!form.age_conducteur2 || form.age_conducteur2 < 18 || form.age_conducteur2 > 100) errors.push("L'âge du conducteur secondaire doit être entre 18 et 100 ans");
       if (form.anciennete_permis2 < 0 || form.anciennete_permis2 > form.age_conducteur2 - 18) errors.push("L'ancienneté du permis du conducteur secondaire est incohérente");
     }
-
-    // Véhicule
     if (!form.cylindre_vehicule || form.cylindre_vehicule < 50 || form.cylindre_vehicule > 10000) errors.push("La cylindrée doit être entre 50 et 10 000 cc");
     if (!form.din_vehicule || form.din_vehicule < 1 || form.din_vehicule > 1000) errors.push("La puissance doit être entre 1 et 1 000 ch");
     if (!form.vitesse_vehicule || form.vitesse_vehicule < 50 || form.vitesse_vehicule > 400) errors.push("La vitesse max doit être entre 50 et 400 km/h");
@@ -128,11 +123,13 @@ export default function InsuranceForm() {
             Informations du contrat
           </h2>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
-            <Field label="Coefficient bonus-malus" hint="Entre 0.5 (bonus max) et 3.5 (malus max)">
+            <Field label="Coefficient bonus-malus" hint="Entre 0.5 (bonus max) et 3.5 (malus max)"
+              tooltip="Le coefficient bonus-malus reflète votre historique de conduite. 0.5 signifie aucun sinistre depuis longtemps, 3.5 signifie plusieurs sinistres récents.">
               <Input type="number" step="0.01" min={0.5} max={3.5} value={form.bonus}
                 onChange={(e) => set("bonus", parseFloat(e.target.value))} />
             </Field>
-            <Field label="Type de contrat">
+            <Field label="Type de contrat"
+              tooltip="Le type de contrat détermine le niveau de couverture. Maxi offre la couverture la plus complète.">
               <Select value={form.type_contrat} onChange={(e) => set("type_contrat", e.target.value)}
                 options={[
                   { value: "Maxi", label: "Maxi" },
@@ -141,15 +138,18 @@ export default function InsuranceForm() {
                   { value: "Standard", label: "Standard" },
                 ]} />
             </Field>
-            <Field label="Durée du contrat (mois)">
+            <Field label="Durée du contrat (mois)"
+              tooltip="Durée totale de votre contrat d'assurance en mois.">
               <Input type="number" min={0} max={120} value={form.duree_contrat}
                 onChange={(e) => set("duree_contrat", parseInt(e.target.value))} />
             </Field>
-            <Field label="Ancienneté info (années)">
+            <Field label="Ancienneté info (années)"
+              tooltip="Nombre d'années depuis votre première souscription d'assurance auto.">
               <Input type="number" min={0} max={50} value={form.anciennete_info}
                 onChange={(e) => set("anciennete_info", parseInt(e.target.value))} />
             </Field>
-            <Field label="Fréquence de paiement">
+            <Field label="Fréquence de paiement"
+              tooltip="À quelle fréquence vous payez vos cotisations. Le paiement annuel est souvent moins cher.">
               <Select value={form.freq_paiement} onChange={(e) => set("freq_paiement", e.target.value)}
                 options={[
                   { value: "Annual", label: "Annuel" },
@@ -158,14 +158,16 @@ export default function InsuranceForm() {
                   { value: "Quarterly", label: "Trimestriel" },
                 ]} />
             </Field>
-            <Field label="Paiement en cours">
+            <Field label="Paiement en cours"
+              tooltip="Indique si vous avez un paiement en cours sur ce contrat.">
               <Select value={form.paiement} onChange={(e) => set("paiement", e.target.value)}
                 options={[
                   { value: "No", label: "Non" },
                   { value: "Yes", label: "Oui" },
                 ]} />
             </Field>
-            <Field label="Utilisation du véhicule">
+            <Field label="Utilisation du véhicule"
+              tooltip="L'usage principal de votre véhicule. Un usage professionnel augmente le risque de sinistre.">
               <Select value={form.utilisation} onChange={(e) => set("utilisation", e.target.value)}
                 options={[
                   { value: "Retired", label: "Retraité" },
@@ -174,7 +176,8 @@ export default function InsuranceForm() {
                   { value: "AllPurpose", label: "Tous usages" },
                 ]} />
             </Field>
-            <Field label="Code postal" hint="5 chiffres">
+            <Field label="Code postal" hint="5 chiffres"
+              tooltip="Votre département influence le risque selon la densité de circulation et les statistiques d'accidents locales.">
               <Input type="text" maxLength={5} value={form.code_postal}
                 onChange={(e) => set("code_postal", e.target.value)} />
             </Field>
@@ -193,18 +196,21 @@ export default function InsuranceForm() {
               Conducteur principal
             </p>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "16px" }}>
-              <Field label="Âge">
+              <Field label="Âge"
+                tooltip="L'âge du conducteur est un facteur clé. Les jeunes conducteurs (18-25 ans) ont statistiquement plus de sinistres.">
                 <Input type="number" min={18} max={100} value={form.age_conducteur1}
                   onChange={(e) => set("age_conducteur1", parseInt(e.target.value))} />
               </Field>
-              <Field label="Sexe">
+              <Field label="Sexe"
+                tooltip="Le sexe du conducteur est un facteur statistique utilisé dans le calcul de la prime.">
                 <Select value={form.sex_conducteur1} onChange={(e) => set("sex_conducteur1", e.target.value)}
                   options={[
                     { value: "M", label: "Masculin" },
                     { value: "F", label: "Féminin" },
                   ]} />
               </Field>
-              <Field label="Ancienneté permis (ans)">
+              <Field label="Ancienneté permis (ans)"
+                tooltip="Nombre d'années depuis l'obtention du permis. Plus l'ancienneté est grande, plus le risque diminue.">
                 <Input type="number" min={0} max={form.age_conducteur1 - 18} value={form.anciennete_permis1}
                   onChange={(e) => set("anciennete_permis1", parseInt(e.target.value))} />
               </Field>
@@ -240,7 +246,8 @@ export default function InsuranceForm() {
             </div>
             {form.conducteur2 === "Yes" ? (
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "16px" }}>
-                <Field label="Âge">
+                <Field label="Âge"
+                  tooltip="L'âge du conducteur secondaire influence également la prime calculée.">
                   <Input type="number" min={18} max={100} value={form.age_conducteur2 || ""}
                     onChange={(e) => set("age_conducteur2", parseInt(e.target.value))} />
                 </Field>
@@ -251,7 +258,8 @@ export default function InsuranceForm() {
                       { value: "F", label: "Féminin" },
                     ]} />
                 </Field>
-                <Field label="Ancienneté permis (ans)">
+                <Field label="Ancienneté permis (ans)"
+                  tooltip="Ancienneté du permis du conducteur secondaire.">
                   <Input type="number" min={0} max={form.age_conducteur2 ? form.age_conducteur2 - 18 : 0} value={form.anciennete_permis2 || ""}
                     onChange={(e) => set("anciennete_permis2", parseInt(e.target.value))} />
                 </Field>
@@ -272,30 +280,41 @@ export default function InsuranceForm() {
             Véhicule
           </h2>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
-            <Field label="Marque">
-              <Select
-                value={form.marque_vehicule}
-                onChange={(e) => {
-                  set("marque_vehicule", e.target.value);
-                  set("modele_vehicule", "");
-                }}
-                options={[
-                  { value: "", label: "Sélectionner une marque" },
-                  ...brands.map((b) => ({ value: b.value, label: b.label }))
-                ]}
-              />
+            <Field label="Marque"
+              tooltip="Sélectionnez la marque de votre véhicule parmi les marques disponibles.">
+              {brandsLoading ? (
+                <div style={{ height: "42px", background: "#e2e8f0", borderRadius: "8px", animation: "pulse 1.5s ease-in-out infinite" }} />
+              ) : (
+                <Select
+                  value={form.marque_vehicule}
+                  onChange={(e) => {
+                    set("marque_vehicule", e.target.value);
+                    set("modele_vehicule", "");
+                  }}
+                  options={[
+                    { value: "", label: "Sélectionner une marque" },
+                    ...brands.map((b) => ({ value: b.value, label: b.label }))
+                  ]}
+                />
+              )}
             </Field>
-            <Field label="Modèle">
-              <Select
-                value={form.modele_vehicule}
-                onChange={(e) => set("modele_vehicule", e.target.value)}
-                options={[
-                  { value: "", label: form.marque_vehicule ? "Sélectionner un modèle" : "Choisir une marque d'abord" },
-                  ...modeles.map((m) => ({ value: m.value, label: m.label }))
-                ]}
-              />
+            <Field label="Modèle"
+              tooltip="Sélectionnez le modèle de votre véhicule. La liste se met à jour selon la marque choisie.">
+              {brandsLoading ? (
+                <div style={{ height: "42px", background: "#e2e8f0", borderRadius: "8px", animation: "pulse 1.5s ease-in-out infinite" }} />
+              ) : (
+                <Select
+                  value={form.modele_vehicule}
+                  onChange={(e) => set("modele_vehicule", e.target.value)}
+                  options={[
+                    { value: "", label: form.marque_vehicule ? "Sélectionner un modèle" : "Choisir une marque d'abord" },
+                    ...modeles.map((m) => ({ value: m.value, label: m.label }))
+                  ]}
+                />
+              )}
             </Field>
-            <Field label="Type de carburant">
+            <Field label="Type de carburant"
+              tooltip="Le type de carburant de votre véhicule.">
               <Select value={form.essence_vehicule} onChange={(e) => set("essence_vehicule", e.target.value)}
                 options={[
                   { value: "Gasoline", label: "Essence" },
@@ -305,7 +324,8 @@ export default function InsuranceForm() {
                   { value: "GPL", label: "GPL" },
                 ]} />
             </Field>
-            <Field label="Type de véhicule">
+            <Field label="Type de véhicule"
+              tooltip="La catégorie de votre véhicule. Les SUV et utilitaires ont des profils de risque différents.">
               <Select value={form.type_vehicule} onChange={(e) => set("type_vehicule", e.target.value)}
                 options={[
                   { value: "Tourism", label: "Tourisme" },
@@ -315,35 +335,43 @@ export default function InsuranceForm() {
                   { value: "Convertible", label: "Cabriolet" },
                 ]} />
             </Field>
-            <Field label="Ancienneté véhicule (ans)">
+            <Field label="Ancienneté véhicule (ans)"
+              tooltip="Âge de votre véhicule en années. Les véhicules anciens ont des coûts de réparation différents.">
               <Input type="number" min={0} max={50} step="0.1" value={form.anciennete_vehicule}
                 onChange={(e) => set("anciennete_vehicule", parseFloat(e.target.value))} />
             </Field>
-            <Field label="Prix du véhicule (€)">
+            <Field label="Prix du véhicule (€)"
+              tooltip="Valeur actuelle de votre véhicule. Influence le coût de remplacement en cas de sinistre total.">
               <Input type="number" min={500} max={500000} value={form.prix_vehicule}
                 onChange={(e) => set("prix_vehicule", parseInt(e.target.value))} />
             </Field>
-            <Field label="Cylindrée (cc)">
+            <Field label="Cylindrée (cc)"
+              tooltip="La cylindrée du moteur en centimètres cubes. Une cylindrée élevée est associée à des vitesses plus importantes.">
               <Input type="number" min={50} max={10000} value={form.cylindre_vehicule}
                 onChange={(e) => set("cylindre_vehicule", parseInt(e.target.value))} />
             </Field>
-            <Field label="Puissance DIN (ch)">
+            <Field label="Puissance DIN (ch)"
+              tooltip="La puissance du moteur en chevaux. Une puissance élevée augmente le risque de sinistre grave.">
               <Input type="number" min={1} max={1000} value={form.din_vehicule}
                 onChange={(e) => set("din_vehicule", parseInt(e.target.value))} />
             </Field>
-            <Field label="Vitesse max (km/h)">
+            <Field label="Vitesse max (km/h)"
+              tooltip="La vitesse maximale du véhicule. Ce facteur influence directement la gravité des sinistres potentiels.">
               <Input type="number" min={50} max={400} value={form.vitesse_vehicule}
                 onChange={(e) => set("vitesse_vehicule", parseInt(e.target.value))} />
             </Field>
-            <Field label="Poids (kg)" hint="0 si inconnu">
+            <Field label="Poids (kg)" hint="0 si inconnu"
+              tooltip="Le poids du véhicule influence la sévérité des dommages en cas d'accident.">
               <Input type="number" min={0} max={5000} value={form.poids_vehicule}
                 onChange={(e) => set("poids_vehicule", parseInt(e.target.value))} />
             </Field>
-            <Field label="Début vente (mois)" hint="1-12">
+            <Field label="Début vente (mois)" hint="1-12"
+              tooltip="Mois de début de commercialisation du modèle.">
               <Input type="number" min={1} max={12} value={form.debut_vente_vehicule}
                 onChange={(e) => set("debut_vente_vehicule", parseInt(e.target.value))} />
             </Field>
-            <Field label="Fin vente (mois)" hint="1-12">
+            <Field label="Fin vente (mois)" hint="1-12"
+              tooltip="Mois de fin de commercialisation du modèle.">
               <Input type="number" min={1} max={12} value={form.fin_vente_vehicule}
                 onChange={(e) => set("fin_vente_vehicule", parseInt(e.target.value))} />
             </Field>

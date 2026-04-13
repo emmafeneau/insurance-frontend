@@ -1,20 +1,25 @@
 "use client";
 
 import React from "react";
+import { Tooltip } from "./Tooltip";
 
 interface FieldProps {
   label: string;
   hint?: string;
+  tooltip?: string;
   children: React.ReactNode;
   className?: string;
 }
 
-export function Field({ label, hint, children, className = "" }: FieldProps) {
+export function Field({ label, hint, tooltip, children, className = "" }: FieldProps) {
   return (
     <div className={`flex flex-col gap-1.5 ${className}`}>
-      <label style={{ fontSize: "11px", fontWeight: 500, letterSpacing: "0.08em", textTransform: "uppercase", color: "#64748b" }}>
-        {label}
-      </label>
+      <div style={{ display: "flex", alignItems: "center" }}>
+        <label style={{ fontSize: "11px", fontWeight: 500, letterSpacing: "0.08em", textTransform: "uppercase", color: "#64748b" }}>
+          {label}
+        </label>
+        {tooltip && <Tooltip text={tooltip} />}
+      </div>
       {children}
       {hint && <p style={{ fontSize: "11px", color: "#94a3b8", margin: 0 }}>{hint}</p>}
     </div>
