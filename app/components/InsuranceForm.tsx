@@ -59,15 +59,33 @@ export default function InsuranceForm() {
   async function handleSubmit() {
     const errors: string[] = [];
 
+    // Véhicule
     if (!form.marque_vehicule) errors.push("La marque du véhicule est obligatoire");
     if (!form.modele_vehicule) errors.push("Le modèle du véhicule est obligatoire");
+
+    // Contrat
     if (!form.code_postal || form.code_postal.length < 5) errors.push("Le code postal doit contenir 5 chiffres");
-    if (!form.bonus) errors.push("Le coefficient bonus-malus est obligatoire");
-    if (!form.age_conducteur1) errors.push("L'âge du conducteur principal est obligatoire");
-    if (!form.cylindre_vehicule) errors.push("La cylindrée est obligatoire");
-    if (!form.din_vehicule) errors.push("La puissance DIN est obligatoire");
-    if (!form.vitesse_vehicule) errors.push("La vitesse max est obligatoire");
-    if (!form.prix_vehicule) errors.push("Le prix du véhicule est obligatoire");
+    if (!form.bonus || form.bonus < 0.5 || form.bonus > 3.5) errors.push("Le bonus-malus doit être entre 0.5 et 3.5");
+    if (form.duree_contrat < 0 || form.duree_contrat > 120) errors.push("La durée du contrat doit être entre 0 et 120 mois");
+    if (form.anciennete_info < 0 || form.anciennete_info > 50) errors.push("L'ancienneté info doit être entre 0 et 50 ans");
+
+    // Conducteur principal
+    if (!form.age_conducteur1 || form.age_conducteur1 < 18 || form.age_conducteur1 > 100) errors.push("L'âge du conducteur doit être entre 18 et 100 ans");
+    if (form.anciennete_permis1 < 0 || form.anciennete_permis1 > form.age_conducteur1 - 18) errors.push("L'ancienneté du permis est incohérente avec l'âge");
+
+    // Conducteur secondaire
+    if (form.conducteur2 === "Yes") {
+      if (!form.age_conducteur2 || form.age_conducteur2 < 18 || form.age_conducteur2 > 100) errors.push("L'âge du conducteur secondaire doit être entre 18 et 100 ans");
+      if (form.anciennete_permis2 < 0 || form.anciennete_permis2 > form.age_conducteur2 - 18) errors.push("L'ancienneté du permis du conducteur secondaire est incohérente");
+    }
+
+    // Véhicule
+    if (!form.cylindre_vehicule || form.cylindre_vehicule < 50 || form.cylindre_vehicule > 10000) errors.push("La cylindrée doit être entre 50 et 10 000 cc");
+    if (!form.din_vehicule || form.din_vehicule < 1 || form.din_vehicule > 1000) errors.push("La puissance doit être entre 1 et 1 000 ch");
+    if (!form.vitesse_vehicule || form.vitesse_vehicule < 50 || form.vitesse_vehicule > 400) errors.push("La vitesse max doit être entre 50 et 400 km/h");
+    if (!form.prix_vehicule || form.prix_vehicule < 500 || form.prix_vehicule > 500000) errors.push("Le prix doit être entre 500 et 500 000 €");
+    if (form.anciennete_vehicule < 0 || form.anciennete_vehicule > 50) errors.push("L'ancienneté du véhicule doit être entre 0 et 50 ans");
+    if (form.poids_vehicule < 0 || form.poids_vehicule > 5000) errors.push("Le poids doit être entre 0 et 5 000 kg");
 
     if (errors.length > 0) {
       setValidationErrors(errors);
@@ -124,11 +142,11 @@ export default function InsuranceForm() {
                 ]} />
             </Field>
             <Field label="Durée du contrat (mois)">
-              <Input type="number" min={0} value={form.duree_contrat}
+              <Input type="number" min={0} max={120} value={form.duree_contrat}
                 onChange={(e) => set("duree_contrat", parseInt(e.target.value))} />
             </Field>
             <Field label="Ancienneté info (années)">
-              <Input type="number" min={0} value={form.anciennete_info}
+              <Input type="number" min={0} max={50} value={form.anciennete_info}
                 onChange={(e) => set("anciennete_info", parseInt(e.target.value))} />
             </Field>
             <Field label="Fréquence de paiement">
@@ -176,7 +194,7 @@ export default function InsuranceForm() {
             </p>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "16px" }}>
               <Field label="Âge">
-                <Input type="number" min={18} max={120} value={form.age_conducteur1}
+                <Input type="number" min={18} max={100} value={form.age_conducteur1}
                   onChange={(e) => set("age_conducteur1", parseInt(e.target.value))} />
               </Field>
               <Field label="Sexe">
@@ -187,7 +205,7 @@ export default function InsuranceForm() {
                   ]} />
               </Field>
               <Field label="Ancienneté permis (ans)">
-                <Input type="number" min={0} value={form.anciennete_permis1}
+                <Input type="number" min={0} max={form.age_conducteur1 - 18} value={form.anciennete_permis1}
                   onChange={(e) => set("anciennete_permis1", parseInt(e.target.value))} />
               </Field>
             </div>
@@ -223,7 +241,7 @@ export default function InsuranceForm() {
             {form.conducteur2 === "Yes" ? (
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "16px" }}>
                 <Field label="Âge">
-                  <Input type="number" min={18} max={120} value={form.age_conducteur2 || ""}
+                  <Input type="number" min={18} max={100} value={form.age_conducteur2 || ""}
                     onChange={(e) => set("age_conducteur2", parseInt(e.target.value))} />
                 </Field>
                 <Field label="Sexe">
@@ -234,7 +252,7 @@ export default function InsuranceForm() {
                     ]} />
                 </Field>
                 <Field label="Ancienneté permis (ans)">
-                  <Input type="number" min={0} value={form.anciennete_permis2 || ""}
+                  <Input type="number" min={0} max={form.age_conducteur2 ? form.age_conducteur2 - 18 : 0} value={form.anciennete_permis2 || ""}
                     onChange={(e) => set("anciennete_permis2", parseInt(e.target.value))} />
                 </Field>
               </div>
@@ -298,27 +316,27 @@ export default function InsuranceForm() {
                 ]} />
             </Field>
             <Field label="Ancienneté véhicule (ans)">
-              <Input type="number" min={0} step="0.1" value={form.anciennete_vehicule}
+              <Input type="number" min={0} max={50} step="0.1" value={form.anciennete_vehicule}
                 onChange={(e) => set("anciennete_vehicule", parseFloat(e.target.value))} />
             </Field>
             <Field label="Prix du véhicule (€)">
-              <Input type="number" min={0} value={form.prix_vehicule}
+              <Input type="number" min={500} max={500000} value={form.prix_vehicule}
                 onChange={(e) => set("prix_vehicule", parseInt(e.target.value))} />
             </Field>
             <Field label="Cylindrée (cc)">
-              <Input type="number" min={1} value={form.cylindre_vehicule}
+              <Input type="number" min={50} max={10000} value={form.cylindre_vehicule}
                 onChange={(e) => set("cylindre_vehicule", parseInt(e.target.value))} />
             </Field>
             <Field label="Puissance DIN (ch)">
-              <Input type="number" min={1} value={form.din_vehicule}
+              <Input type="number" min={1} max={1000} value={form.din_vehicule}
                 onChange={(e) => set("din_vehicule", parseInt(e.target.value))} />
             </Field>
             <Field label="Vitesse max (km/h)">
-              <Input type="number" min={1} value={form.vitesse_vehicule}
+              <Input type="number" min={50} max={400} value={form.vitesse_vehicule}
                 onChange={(e) => set("vitesse_vehicule", parseInt(e.target.value))} />
             </Field>
             <Field label="Poids (kg)" hint="0 si inconnu">
-              <Input type="number" min={0} value={form.poids_vehicule}
+              <Input type="number" min={0} max={5000} value={form.poids_vehicule}
                 onChange={(e) => set("poids_vehicule", parseInt(e.target.value))} />
             </Field>
             <Field label="Début vente (mois)" hint="1-12">
@@ -336,8 +354,8 @@ export default function InsuranceForm() {
       {/* Validation errors */}
       {validationErrors.length > 0 && (
         <div style={{ marginTop: "1.5rem", border: "1px solid #fbbf24", background: "#fffbeb", borderRadius: "8px", padding: "12px 16px" }}>
-          <p style={{ fontSize: "13px", fontWeight: 500, color: "#92400e", marginBottom: "8px", margin: "0 0 8px" }}>
-            Veuillez remplir tous les champs obligatoires :
+          <p style={{ fontSize: "13px", fontWeight: 500, color: "#92400e", margin: "0 0 8px" }}>
+            Veuillez corriger les erreurs suivantes :
           </p>
           <ul style={{ margin: 0, paddingLeft: "16px" }}>
             {validationErrors.map((err, i) => (
