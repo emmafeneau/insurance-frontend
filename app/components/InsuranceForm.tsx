@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Field, Input, Select } from "./Field";
 import { StepIndicator } from "./StepIndicator";
 import { Results } from "./Results";
+import { Comparison } from "./Comparison";
 import { PredictionInput, PrimeOutput, predictPrime, getVehicles, VehicleBrand } from "../lib/api";
 
 const DEFAULT: PredictionInput = {
@@ -45,6 +46,9 @@ export default function InsuranceForm() {
   const [result, setResult] = useState<PrimeOutput | null>(null);
   const [brands, setBrands] = useState<VehicleBrand[]>([]);
   const [brandsLoading, setBrandsLoading] = useState(true);
+  const [compareMode, setCompareMode] = useState(false);
+  const [firstResult, setFirstResult] = useState<PrimeOutput | null>(null);
+  const [firstInput, setFirstInput] = useState<PredictionInput | null>(null);
 
   const selectedBrand = brands.find((b) => b.value === form.marque_vehicule);
   const modeles = selectedBrand ? selectedBrand.models : [];
@@ -100,21 +104,56 @@ export default function InsuranceForm() {
     }
   }
 
+  // Mode comparaison — affiche les deux résultats côte à côte
+  if (result && firstResult && firstInput && compareMode) {
+    return (
+      <Comparison
+        result1={firstResult}
+        input1={firstInput}
+        result2={result}
+        input2={form}
+        onReset={() => {
+          setResult(null);
+          setFirstResult(null);
+          setFirstInput(null);
+          setCompareMode(false);
+          setStep(0);
+          setForm(DEFAULT);
+        }}
+      />
+    );
+  }
+
+  // Résultat simple
   if (result) {
     return (
-        <Results
-  result={result}
-  input={form}
-  onReset={() => {
-    setResult(null);
-    setStep(0);
-  }}
-/>
+      <Results
+        result={result}
+        input={form}
+        onReset={() => {
+          setResult(null);
+          setStep(0);
+        }}
+        onCompare={() => {
+          setFirstResult(result);
+          setFirstInput(form);
+          setCompareMode(true);
+          setResult(null);
+          setStep(0);
+          setForm(DEFAULT);
+        }}
+      />
     );
   }
 
   return (
     <div>
+      {compareMode && (
+        <div style={{ background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: "8px", padding: "10px 16px", marginBottom: "1.5rem", fontSize: "13px", color: "#1d4ed8" }}>
+          Simulation 1 enregistrée — remplissez le formulaire pour la simulation 2
+        </div>
+      )}
+
       <StepIndicator current={step} />
 
       {/* STEP 0 — Contrat */}
@@ -284,7 +323,7 @@ export default function InsuranceForm() {
             <Field label="Marque"
               tooltip="Sélectionnez la marque de votre véhicule parmi les marques disponibles.">
               {brandsLoading ? (
-                <div style={{ height: "42px", background: "#e2e8f0", borderRadius: "8px", animation: "pulse 1.5s ease-in-out infinite" }} />
+                <div style={{ height: "42px", background: "#e2e8f0", borderRadius: "8px" }} />
               ) : (
                 <Select
                   value={form.marque_vehicule}
@@ -302,7 +341,7 @@ export default function InsuranceForm() {
             <Field label="Modèle"
               tooltip="Sélectionnez le modèle de votre véhicule. La liste se met à jour selon la marque choisie.">
               {brandsLoading ? (
-                <div style={{ height: "42px", background: "#e2e8f0", borderRadius: "8px", animation: "pulse 1.5s ease-in-out infinite" }} />
+                <div style={{ height: "42px", background: "#e2e8f0", borderRadius: "8px" }} />
               ) : (
                 <Select
                   value={form.modele_vehicule}

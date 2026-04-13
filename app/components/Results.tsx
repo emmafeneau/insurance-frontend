@@ -22,28 +22,24 @@ function Gauge({ value, max = 1 }: { value: number; max?: number }) {
   );
 }
 
+const CARBURANT: Record<string, string> = {
+  Gasoline: "Essence", Diesel: "Diesel",
+  Electric: "Électrique", Hybrid: "Hybride", GPL: "GPL",
+};
+
+const UTILISATION: Record<string, string> = {
+  Retired: "Retraité", Professional: "Professionnel",
+  Private: "Privé", AllPurpose: "Tous usages",
+};
+
 interface ResultsProps {
   result: PrimeOutput;
   input: PredictionInput;
   onReset: () => void;
+  onCompare?: () => void;
 }
 
-const CARBURANT: Record<string, string> = {
-  Gasoline: "Essence",
-  Diesel: "Diesel",
-  Electric: "Électrique",
-  Hybrid: "Hybride",
-  GPL: "GPL",
-};
-
-const UTILISATION: Record<string, string> = {
-  Retired: "Retraité",
-  Professional: "Professionnel",
-  Private: "Privé",
-  AllPurpose: "Tous usages",
-};
-
-export function Results({ result, input, onReset }: ResultsProps) {
+export function Results({ result, input, onReset, onCompare }: ResultsProps) {
   const freq = result.frequence;
   const sev = result.severite;
   const prime = result.prime_pure;
@@ -119,14 +115,14 @@ export function Results({ result, input, onReset }: ResultsProps) {
               transition: "width 1s ease",
             }} />
           </div>
-          <span style={{ fontSize: "13px", fontWeight: 500, color: "#1e3a5f", width: "70px", textAlign: "right" }}>{prime.toFixed(0)} €</span>
+          <span style={{ fontSize: "13px", fontWeight: 500, color: "#1e3a5f", width: "70px", textAlign: "right" as const }}>{prime.toFixed(0)} €</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
           <span style={{ fontSize: "13px", color: "#64748b", width: "80px" }}>Moyenne</span>
           <div style={{ flex: 1, background: "#e2e8f0", borderRadius: "4px", height: "10px", overflow: "hidden" }}>
             <div style={{ width: "50%", height: "100%", background: "#94a3b8", borderRadius: "4px" }} />
           </div>
-          <span style={{ fontSize: "13px", fontWeight: 500, color: "#94a3b8", width: "70px", textAlign: "right" }}>{primeMoyenne} €</span>
+          <span style={{ fontSize: "13px", fontWeight: 500, color: "#94a3b8", width: "70px", textAlign: "right" as const }}>{primeMoyenne} €</span>
         </div>
         <p style={{ fontSize: "12px", color: prime > primeMoyenne ? "#ef4444" : "#16a34a", margin: "10px 0 0", fontWeight: 500 }}>
           {prime > primeMoyenne
@@ -209,6 +205,12 @@ export function Results({ result, input, onReset }: ResultsProps) {
           style={{ flex: 1, padding: "10px 20px", border: "1px solid #e2e8f0", borderRadius: "8px", fontSize: "14px", color: "#64748b", background: "white", cursor: "pointer" }}>
           Nouvelle simulation
         </button>
+        {onCompare && (
+          <button onClick={onCompare}
+            style={{ flex: 1, padding: "10px 20px", border: "1px solid #2563eb", borderRadius: "8px", fontSize: "14px", color: "#2563eb", background: "white", cursor: "pointer", fontWeight: 500 }}>
+            Comparer →
+          </button>
+        )}
         <button onClick={() => window.print()}
           style={{ padding: "10px 20px", border: "1px solid #1e3a5f", borderRadius: "8px", fontSize: "14px", color: "#1e3a5f", background: "white", cursor: "pointer", fontWeight: 500 }}>
           Imprimer
