@@ -41,6 +41,7 @@ export default function InsuranceForm() {
   const [form, setForm] = useState<PredictionInput>(DEFAULT);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const [result, setResult] = useState<PrimeOutput | null>(null);
   const [brands, setBrands] = useState<VehicleBrand[]>([]);
 
@@ -56,6 +57,24 @@ export default function InsuranceForm() {
   }
 
   async function handleSubmit() {
+    const errors: string[] = [];
+
+    if (!form.marque_vehicule) errors.push("La marque du véhicule est obligatoire");
+    if (!form.modele_vehicule) errors.push("Le modèle du véhicule est obligatoire");
+    if (!form.code_postal || form.code_postal.length < 5) errors.push("Le code postal doit contenir 5 chiffres");
+    if (!form.bonus) errors.push("Le coefficient bonus-malus est obligatoire");
+    if (!form.age_conducteur1) errors.push("L'âge du conducteur principal est obligatoire");
+    if (!form.cylindre_vehicule) errors.push("La cylindrée est obligatoire");
+    if (!form.din_vehicule) errors.push("La puissance DIN est obligatoire");
+    if (!form.vitesse_vehicule) errors.push("La vitesse max est obligatoire");
+    if (!form.prix_vehicule) errors.push("Le prix du véhicule est obligatoire");
+
+    if (errors.length > 0) {
+      setValidationErrors(errors);
+      return;
+    }
+
+    setValidationErrors([]);
     setLoading(true);
     setError(null);
     try {
@@ -314,7 +333,21 @@ export default function InsuranceForm() {
         </div>
       )}
 
-      {/* Error */}
+      {/* Validation errors */}
+      {validationErrors.length > 0 && (
+        <div style={{ marginTop: "1.5rem", border: "1px solid #fbbf24", background: "#fffbeb", borderRadius: "8px", padding: "12px 16px" }}>
+          <p style={{ fontSize: "13px", fontWeight: 500, color: "#92400e", marginBottom: "8px", margin: "0 0 8px" }}>
+            Veuillez remplir tous les champs obligatoires :
+          </p>
+          <ul style={{ margin: 0, paddingLeft: "16px" }}>
+            {validationErrors.map((err, i) => (
+              <li key={i} style={{ fontSize: "13px", color: "#92400e", marginBottom: "4px" }}>{err}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* API error */}
       {error && (
         <div style={{ marginTop: "1.5rem", border: "1px solid #fecaca", background: "#fef2f2", borderRadius: "8px", padding: "12px 16px", fontSize: "14px", color: "#991b1b" }}>
           <strong>Erreur : </strong>{error}
