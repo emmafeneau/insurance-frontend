@@ -1,3 +1,5 @@
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
 export interface PredictionInput {
   // Contrat
   bonus: number;
@@ -47,7 +49,11 @@ export interface HealthResponse {
   sev_model: string;
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+export interface VehicleBrand {
+  value: string;
+  label: string;
+  models: { value: string; label: string }[];
+}
 
 export async function predictPrime(
   data: PredictionInput
@@ -73,7 +79,7 @@ export async function checkHealth(): Promise<HealthResponse> {
   return res.json();
 }
 
-export async function getVehicles(): Promise<Record<string, string[]>> {
+export async function getVehicles(): Promise<{ brands: VehicleBrand[] }> {
   const res = await fetch(`${API_URL}/api/v1/vehicles`, {
     cache: "force-cache",
   });

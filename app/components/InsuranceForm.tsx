@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Field, Input, Select } from "./Field";
 import { StepIndicator } from "./StepIndicator";
 import { Results } from "./Results";
-import { PredictionInput, PrimeOutput, predictPrime, getVehicles } from "../lib/api";
+import { PredictionInput, PrimeOutput, predictPrime, getVehicles, VehicleBrand } from "../lib/api";
 
 const DEFAULT: PredictionInput = {
   bonus: 0.5,
@@ -42,13 +42,13 @@ export default function InsuranceForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<PrimeOutput | null>(null);
-  const [vehicles, setVehicles] = useState<Record<string, string[]>>({});
+  const [brands, setBrands] = useState<VehicleBrand[]>([]);
 
-  const marques = Object.keys(vehicles).sort();
-  const modeles = form.marque_vehicule ? vehicles[form.marque_vehicule] || [] : [];
+  const selectedBrand = brands.find((b) => b.value === form.marque_vehicule);
+  const modeles = selectedBrand ? selectedBrand.models : [];
 
   useEffect(() => {
-    getVehicles().then(setVehicles).catch(console.error);
+    getVehicles().then((data) => setBrands(data.brands)).catch(console.error);
   }, []);
 
   function set(field: keyof PredictionInput, value: string | number | null) {
@@ -244,7 +244,7 @@ export default function InsuranceForm() {
                 }}
                 options={[
                   { value: "", label: "Sélectionner une marque" },
-                  ...marques.map((m) => ({ value: m, label: m }))
+                  ...brands.map((b) => ({ value: b.value, label: b.label }))
                 ]}
               />
             </Field>
@@ -254,7 +254,7 @@ export default function InsuranceForm() {
                 onChange={(e) => set("modele_vehicule", e.target.value)}
                 options={[
                   { value: "", label: form.marque_vehicule ? "Sélectionner un modèle" : "Choisir une marque d'abord" },
-                  ...modeles.map((m) => ({ value: m, label: m }))
+                  ...modeles.map((m) => ({ value: m.value, label: m.label }))
                 ]}
               />
             </Field>
