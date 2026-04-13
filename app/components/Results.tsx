@@ -28,6 +28,21 @@ interface ResultsProps {
   onReset: () => void;
 }
 
+const CARBURANT: Record<string, string> = {
+  Gasoline: "Essence",
+  Diesel: "Diesel",
+  Electric: "Électrique",
+  Hybrid: "Hybride",
+  GPL: "GPL",
+};
+
+const UTILISATION: Record<string, string> = {
+  Retired: "Retraité",
+  Professional: "Professionnel",
+  Private: "Privé",
+  AllPurpose: "Tous usages",
+};
+
 export function Results({ result, input, onReset }: ResultsProps) {
   const freq = result.frequence;
   const sev = result.severite;
@@ -98,8 +113,10 @@ export function Results({ result, input, onReset }: ResultsProps) {
           <div style={{ flex: 1, background: "#e2e8f0", borderRadius: "4px", height: "10px", overflow: "hidden" }}>
             <div style={{
               width: `${Math.min((prime / (primeMoyenne * 2)) * 100, 100)}%`,
-              height: "100%", background: prime > primeMoyenne ? "#ef4444" : "#2563eb",
-              borderRadius: "4px", transition: "width 1s ease"
+              height: "100%",
+              background: prime > primeMoyenne ? "#ef4444" : "#2563eb",
+              borderRadius: "4px",
+              transition: "width 1s ease",
             }} />
           </div>
           <span style={{ fontSize: "13px", fontWeight: 500, color: "#1e3a5f", width: "70px", textAlign: "right" }}>{prime.toFixed(0)} €</span>
@@ -107,14 +124,15 @@ export function Results({ result, input, onReset }: ResultsProps) {
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
           <span style={{ fontSize: "13px", color: "#64748b", width: "80px" }}>Moyenne</span>
           <div style={{ flex: 1, background: "#e2e8f0", borderRadius: "4px", height: "10px", overflow: "hidden" }}>
-            <div style={{ width: `${Math.min((primeMoyenne / (primeMoyenne * 2)) * 100, 100)}%`, height: "100%", background: "#94a3b8", borderRadius: "4px" }} />
+            <div style={{ width: "50%", height: "100%", background: "#94a3b8", borderRadius: "4px" }} />
           </div>
           <span style={{ fontSize: "13px", fontWeight: 500, color: "#94a3b8", width: "70px", textAlign: "right" }}>{primeMoyenne} €</span>
         </div>
-        <p style={{ fontSize: "12px", color: prime > primeMoyenne ? "#ef4444" : "#16a34a", marginTop: "10px", margin: "10px 0 0", fontWeight: 500 }}>
+        <p style={{ fontSize: "12px", color: prime > primeMoyenne ? "#ef4444" : "#16a34a", margin: "10px 0 0", fontWeight: 500 }}>
           {prime > primeMoyenne
-            ? `+${(prime - primeMoyenne).toFixed(0)} € au-dessus de la moyenne`
-            : `-${(primeMoyenne - prime).toFixed(0)} € en dessous de la moyenne`}
+            ? `+${(prime - primeMoyenne).toFixed(0)} € au-dessus de la moyenne estimée`
+            : `-${(primeMoyenne - prime).toFixed(0)} € en dessous de la moyenne estimée`}
+          <span style={{ fontSize: "11px", color: "#94a3b8", fontWeight: 400, marginLeft: "6px" }}>(référence : ~320 €/an)</span>
         </p>
       </div>
 
@@ -126,35 +144,30 @@ export function Results({ result, input, onReset }: ResultsProps) {
         <div style={{ display: "flex", flexDirection: "column" as const, gap: "8px" }}>
           <RiskFactor
             label="Bonus-malus"
-            value={input.bonus}
             good={input.bonus <= 1}
             goodText="Bon historique de conduite"
             badText="Historique de sinistres détecté"
           />
           <RiskFactor
             label="Âge du conducteur"
-            value={input.age_conducteur1}
             good={input.age_conducteur1 >= 25 && input.age_conducteur1 <= 65}
             goodText="Tranche d'âge à faible risque"
             badText="Tranche d'âge à risque élevé"
           />
           <RiskFactor
             label="Ancienneté du permis"
-            value={input.anciennete_permis1}
             good={input.anciennete_permis1 >= 5}
             goodText="Conducteur expérimenté"
             badText="Conducteur peu expérimenté"
           />
           <RiskFactor
             label="Puissance du véhicule"
-            value={input.din_vehicule}
             good={input.din_vehicule <= 130}
             goodText="Puissance modérée"
             badText="Véhicule puissant — risque accru"
           />
           <RiskFactor
             label="Valeur du véhicule"
-            value={input.prix_vehicule}
             good={input.prix_vehicule <= 25000}
             goodText="Valeur standard"
             badText="Véhicule de valeur élevée"
@@ -177,8 +190,8 @@ export function Results({ result, input, onReset }: ResultsProps) {
             { label: "Permis depuis", value: `${input.anciennete_permis1} ans` },
             { label: "Puissance", value: `${input.din_vehicule} ch` },
             { label: "Prix véhicule", value: `${input.prix_vehicule.toLocaleString()} €` },
-            { label: "Carburant", value: input.essence_vehicule },
-            { label: "Utilisation", value: input.utilisation },
+            { label: "Carburant", value: CARBURANT[input.essence_vehicule] || input.essence_vehicule },
+            { label: "Utilisation", value: UTILISATION[input.utilisation] || input.utilisation },
             { label: "Code postal", value: input.code_postal },
             { label: "Conducteur 2", value: input.conducteur2 === "Yes" ? "Oui" : "Non" },
           ].map((item) => (
@@ -220,16 +233,23 @@ function RiskBadge({ freq }: { freq: number }) {
   );
 }
 
-function RiskFactor({ label, value, good, goodText, badText }: {
-  label: string; value: number; good: boolean; goodText: string; badText: string;
+function RiskFactor({ label, good, goodText, badText }: {
+  label: string; good: boolean; goodText: string; badText: string;
 }) {
   return (
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 12px", borderRadius: "8px", background: good ? "#f0fdf4" : "#fef2f2", border: `1px solid ${good ? "#bbf7d0" : "#fecaca"}` }}>
+    <div style={{
+      display: "flex", alignItems: "center", justifyContent: "space-between",
+      padding: "8px 12px", borderRadius: "8px",
+      background: good ? "#f0fdf4" : "#fef2f2",
+      border: `1px solid ${good ? "#bbf7d0" : "#fecaca"}`,
+    }}>
       <div>
         <span style={{ fontSize: "13px", fontWeight: 500, color: good ? "#166534" : "#991b1b" }}>{label}</span>
-        <p style={{ fontSize: "11px", color: good ? "#16a34a" : "#ef4444", margin: "2px 0 0" }}>{good ? goodText : badText}</p>
+        <p style={{ fontSize: "11px", color: good ? "#16a34a" : "#ef4444", margin: "2px 0 0" }}>
+          {good ? goodText : badText}
+        </p>
       </div>
-      <div style={{ fontSize: "18px" }}>{good ? "✓" : "↑"}</div>
+      <div style={{ fontSize: "18px", color: good ? "#16a34a" : "#ef4444" }}>{good ? "✓" : "↑"}</div>
     </div>
   );
 }
