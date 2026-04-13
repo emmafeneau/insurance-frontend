@@ -102,13 +102,14 @@ export default function InsuranceForm() {
 
   if (result) {
     return (
-      <Results
-        result={result}
-        onReset={() => {
-          setResult(null);
-          setStep(0);
-        }}
-      />
+        <Results
+  result={result}
+  input={form}
+  onReset={() => {
+    setResult(null);
+    setStep(0);
+  }}
+/>
     );
   }
 
