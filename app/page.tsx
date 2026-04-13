@@ -1,3 +1,4 @@
+import Link from "next/link";
 import InsuranceForm from "./components/InsuranceForm";
 
 export default function Home() {
@@ -15,7 +16,14 @@ export default function Home() {
           </div>
           <span style={{ color: "white", fontWeight: 600, fontSize: "15px", letterSpacing: "0.06em" }}>AUTOTARIF</span>
         </div>
-        <span style={{ color: "rgba(255,255,255,0.4)", fontSize: "13px" }}>Moteur de tarification v1.0</span>
+        <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
+          <Link href="/history" style={{ color: "rgba(255,255,255,0.6)", fontSize: "13px", textDecoration: "none" }}>
+            Historique
+          </Link>
+          <span style={{ color: "rgba(255,255,255,0.4)", fontSize: "13px" }}>
+            Moteur de tarification v1.0
+          </span>
+        </div>
       </header>
 
       {/* Hero */}
