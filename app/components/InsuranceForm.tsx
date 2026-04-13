@@ -70,12 +70,12 @@ export default function InsuranceForm() {
     if (form.anciennete_info < 0 || form.anciennete_info > 50) errors.push("L'ancienneté info doit être entre 0 et 50 ans");
 
     // Conducteur principal
-    if (!form.age_conducteur1 || form.age_conducteur1 < 18 || form.age_conducteur1 > 120) errors.push("L'âge du conducteur doit être entre 18 et 100 ans");
+    if (!form.age_conducteur1 || form.age_conducteur1 < 18 || form.age_conducteur1 > 120) errors.push("L'âge du conducteur doit être entre 18 et 120 ans");
     if (form.anciennete_permis1 < 0 || form.anciennete_permis1 > form.age_conducteur1 - 18) errors.push("L'ancienneté du permis est incohérente avec l'âge");
 
     // Conducteur secondaire
     if (form.conducteur2 === "Yes") {
-      if (!form.age_conducteur2 || form.age_conducteur2 < 18 || form.age_conducteur2 > 120) errors.push("L'âge du conducteur secondaire doit être entre 18 et 100 ans");
+      if (!form.age_conducteur2 || form.age_conducteur2 < 18 || form.age_conducteur2 > 120) errors.push("L'âge du conducteur secondaire doit être entre 18 et 120 ans");
       if (form.anciennete_permis2 < 0 || form.anciennete_permis2 > form.age_conducteur2 - 18) errors.push("L'ancienneté du permis du conducteur secondaire est incohérente");
     }
 
