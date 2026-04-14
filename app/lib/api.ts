@@ -65,7 +65,10 @@ export async function predictPrime(
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw new Error(err?.detail || `Erreur API (${res.status})`);
+    const message = typeof err?.detail === "string"
+      ? err.detail
+      : err?.detail?.message || err?.message || `API error (${res.status})`;
+    throw new Error(message);
   }
   return res.json();
 }
