@@ -128,7 +128,7 @@ export function Results({ result, input, onReset, onCompare }: ResultsProps) {
           {prime > primeMoyenne
             ? `+${(prime - primeMoyenne).toFixed(0)} € au-dessus de la moyenne estimée`
             : `-${(primeMoyenne - prime).toFixed(0)} € en dessous de la moyenne estimée`}
-          <span style={{ fontSize: "11px", color: "#94a3b8", fontWeight: 400, marginLeft: "6px" }}>(référence : ~320 €/an)</span>
+          <span style={{ fontSize: "11px", color: "#94a3b8", fontWeight: 400, marginLeft: "6px" }}>(référence : ~103 €/an)</span>
         </p>
       </div>
 
