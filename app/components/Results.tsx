@@ -43,7 +43,6 @@ export function Results({ result, input, onReset, onCompare }: ResultsProps) {
   const freq = result.frequence;
   const sev = result.severite;
   const prime = result.prime_pure;
-  const primeMoyenne = 103;
 
   return (
     <div>
@@ -98,39 +97,6 @@ export function Results({ result, input, onReset, onCompare }: ResultsProps) {
 
       {/* Risk badge */}
       <RiskBadge freq={freq} />
-
-      {/* Comparaison avec la moyenne */}
-      <div style={{ border: "1px solid #e2e8f0", borderRadius: "12px", padding: "1.25rem", marginTop: "1.5rem", background: "#f8fafc" }}>
-        <p style={{ fontSize: "11px", letterSpacing: "0.08em", textTransform: "uppercase" as const, color: "#64748b", marginBottom: "1rem" }}>
-          Comparaison avec la moyenne
-        </p>
-        <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "8px" }}>
-          <span style={{ fontSize: "13px", color: "#64748b", width: "80px" }}>Votre prime</span>
-          <div style={{ flex: 1, background: "#e2e8f0", borderRadius: "4px", height: "10px", overflow: "hidden" }}>
-            <div style={{
-              width: `${Math.min((prime / (primeMoyenne * 2)) * 100, 100)}%`,
-              height: "100%",
-              background: prime > primeMoyenne ? "#ef4444" : "#2563eb",
-              borderRadius: "4px",
-              transition: "width 1s ease",
-            }} />
-          </div>
-          <span style={{ fontSize: "13px", fontWeight: 500, color: "#1e3a5f", width: "70px", textAlign: "right" as const }}>{prime.toFixed(0)} €</span>
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          <span style={{ fontSize: "13px", color: "#64748b", width: "80px" }}>Moyenne</span>
-          <div style={{ flex: 1, background: "#e2e8f0", borderRadius: "4px", height: "10px", overflow: "hidden" }}>
-            <div style={{ width: "50%", height: "100%", background: "#94a3b8", borderRadius: "4px" }} />
-          </div>
-          <span style={{ fontSize: "13px", fontWeight: 500, color: "#94a3b8", width: "70px", textAlign: "right" as const }}>{primeMoyenne} €</span>
-        </div>
-        <p style={{ fontSize: "12px", color: prime > primeMoyenne ? "#ef4444" : "#16a34a", margin: "10px 0 0", fontWeight: 500 }}>
-          {prime > primeMoyenne
-            ? `+${(prime - primeMoyenne).toFixed(0)} € au-dessus de la moyenne estimée`
-            : `-${(primeMoyenne - prime).toFixed(0)} € en dessous de la moyenne estimée`}
-          <span style={{ fontSize: "11px", color: "#94a3b8", fontWeight: 400, marginLeft: "6px" }}>(référence : ~103 €/an)</span>
-        </p>
-      </div>
 
       {/* Facteurs de risque */}
       <div style={{ border: "1px solid #e2e8f0", borderRadius: "12px", padding: "1.25rem", marginTop: "1.5rem" }}>
