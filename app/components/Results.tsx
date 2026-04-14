@@ -43,7 +43,7 @@ export function Results({ result, input, onReset, onCompare }: ResultsProps) {
   const freq = result.frequence;
   const sev = result.severite;
   const prime = result.prime_pure;
-  const primeMoyenne = 320;
+  const primeMoyenne = 103;
 
   return (
     <div>
